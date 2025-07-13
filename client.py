@@ -1,18 +1,17 @@
 import asyncio
-import nest_asyncio
 
-from mcp import ClientSession, StdioServerParameters
-from mcp.client.stdio import stdio_client
+from mcp import ClientSession
+from mcp.client.streamable_http import streamablehttp_client
 
 async def main():
-    # Deifine the server parameters
-    server_params = StdioServerParameters(
-    command="python",
-    args=[ "server.py"]
-    )
+    
 
     # Connect to the MCP Server
-    async with stdio_client(server_params) as (read_stream, write_stream):
+    async with streamablehttp_client("http://localhost:8000/mcp") as (
+        read_stream,
+        write_stream,
+        get_session_id,
+    ):
         async with ClientSession(read_stream, write_stream) as session:
             # initialise the session
             await session.initialize()
