@@ -77,7 +77,7 @@ async def handle_query(
     open_ai_tools = await get_mcp_tools(session)
 
     print("Tools fetched successfully...")
-    print("Sending query to OpenAI along with MCP tools...")
+    print("Sending query to OpenAI along with available MCP tools...")
     # Initialize OpenAI client
     response = await openai_client.chat.completions.create(
         model=openai_model,
@@ -121,9 +121,13 @@ async def handle_query(
             tools=open_ai_tools,
             tool_choice="none",  # Don't allow more tool calls
         )
-    print("Final response received from OpenAI after processing tool results...")
+    print("Final response received from OpenAI after processing tool results...\n \n")
 
-    return final_response
+    if (final_response):
+        return final_response.choices[0].message.content
+    
+    print("No content in final response, returning assistant message instead... \n \n")
+    return assistant_message.content
 
 
 async def main():
@@ -132,6 +136,8 @@ async def main():
         server_path = "http://localhost:8000/mcp"
         openai_model = "gpt-4o-mini"
 
+        query = input("Enter query to send: ")
+
         async with create_mcp_session(server_path) as session:
             # You can now use the session to interact with the MCP server
             print("Connected to MCP server successfully...")
@@ -139,11 +145,12 @@ async def main():
             # Initialize OpenAI client with API key from environment variable
             openai_client = AsyncOpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
-            query = """I need to host a web application for my new digital service. What platform
-            can I use to host this web application?"""
+            #query = """I need to host a web application for my new digital service. What platform
+            #can I use to host this web application?"""
 
             result = await handle_query(session, query, openai_client, openai_model)
-            print(result.choices[0].message.content)
+
+            print(result)
 
     except Exception as e:
         print(f"Error connecting to MCP server, check that the server is running: {e}")
